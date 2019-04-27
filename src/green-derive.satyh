@@ -1,0 +1,7 @@
+type derivation = unit
+
+module GreenDerive : sig
+    direct \derive : [derivation] math-cmd
+end = struct
+    let-math \derive deriv = ${FIXME}
+end

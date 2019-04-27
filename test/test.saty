@@ -1,0 +1,11 @@
+@require: stdja
+@import: green-derive-test
+
+StdJa.document (|
+  title = {green-derive test};
+  author = {Anonymous Coward};
+  show-title = true;
+  show-toc = false;
+|) '<
+    #GreenDeriveTest.test1;
+>

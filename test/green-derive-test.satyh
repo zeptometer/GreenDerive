@@ -1,0 +1,10 @@
+@require: stdja
+@import: ../src/green-derive
+
+module GreenDeriveTest : sig
+    val test1 : block-text
+end = struct
+    let test1 = '<
+        +p {${\derive!(())}}
+    >
+end
