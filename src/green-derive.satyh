@@ -1,7 +1,20 @@
-type derivation = unit
+@import: ast
+
+open GreenDeriveAst
 
 module GreenDerive : sig
-    direct \derive : [derivation] math-cmd
+    val \proven : [derivation-ast] math-cmd
+
+    val deriveBy : inline-text -> math -> derivation-ast list -> derivation-ast
+    val assume : math -> derivation-ast
+
 end = struct
-    let-math \derive deriv = ${FIXME}
+    let-math \proven ast = let picture = render ast in
+        ${#picture}
+
+    let deriveBy label conclusion assumptions =
+        make-ast (Some(label)) conclusion assumptions
+
+    let assume conclusion = make-ast None conclusion []
+
 end

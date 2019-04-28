@@ -1,10 +1,27 @@
 @require: stdja
+@require: math
 @import: ../src/green-derive
 
 module GreenDeriveTest : sig
-    val test1 : block-text
+    val test1 : math
+    val test2 : math
 end = struct
-    let test1 = '<
-        +p {${\derive!(())}}
-    >
+    open GreenDerive
+
+    let test1 = ${
+        \proven!(
+            assume(${A})
+        )
+    }
+
+    let test2 = ${
+        \proven!(
+            deriveBy({${\wedge}I})
+            (${A \wedge B})
+            [
+                assume(${A});
+                assume(${B});
+            ]
+        )
+    }
 end

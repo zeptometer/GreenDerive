@@ -6,6 +6,7 @@ StdJa.document (|
   author = {Anonymous Coward};
   show-title = true;
   show-toc = false;
-|) '<
-    #GreenDeriveTest.test1;
->
+|) (open GreenDeriveTest in '<
+    +p {${#test1}}
+    +p {${#test2}}
+>)
