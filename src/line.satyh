@@ -1,0 +1,15 @@
+module GreenDeriveLine : sig
+    type derivation-line
+
+    val standard-line : derivation-line
+    val no-line : derivation-line
+
+end = struct
+    % FIXME
+    type derivation-line = unit
+
+    % FIXME
+    let standard-line = ()
+    % FIXME
+    let no-line = ()
+end
