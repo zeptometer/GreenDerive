@@ -1,0 +1,31 @@
+open GreenDerive
+
+\proven!(
+    open IPCKMLabels in
+    derive(${ \ipckm{|  |}{\fmodal{\paren{A \imp B}} \imp \fmodal{A} \imp \fmodal{B}} })
+    #by(impI)
+    #from(
+        derive(${ \ipckm{| \fmodal{\paren{A \imp B}} |}{\fmodal{A} \imp \fmodal{B}} })
+        #by(impI)
+        #from(
+            derive(${ \ipckm{| \fmodal{\paren{A \imp B}}, \fmodal{A} |}{ \fmodal{B}} })
+            #by(fmodalI)
+            #from(
+                derive(${ \ipckm{| \fmodal{\paren{A \imp B}}, \fmodal{A}| \cdot |}{ B } })
+                #by(impE)
+                #from(
+                    derive(${ \ipckm{| \fmodal{\paren{A \imp B}}, \fmodal{A}| \cdot |}{ A \imp B } })
+                    #by(fmodalE)
+                    #from(
+                        derive(${ \ipckm{| \fmodal{\paren{A \imp B}}, \fmodal{A}|}{ \fmodal{\paren{A \imp B}}} })
+                        #by(hyp)
+                    )
+                )
+                #andFrom(
+                    assume(${ \ipckm{| \fmodal{\paren{A \imp B}}, \fmodal{A}| \cdot |}{A} })
+                )
+            )
+        )
+    )
+    #commit1 ()
+)
