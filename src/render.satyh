@@ -11,13 +11,93 @@ end = struct
     type layout = (|
         left-padding: length;
         right-padding: length;
-        innder-width: length;
+        inner-width: length;
     |)
 
     type render-intermediate-result = (|
         rendered: inline-boxes;
         layout: layout;
     |)
+
+    % length list -> length
+    let length-max lens =
+        let max2 len1 len2 = if len1 <' len2 then len2 else len1 in
+        lens |> List.fold-left max2 0pt
+
+    % layout -> layout -> length
+    let get-bar-width assumptions-layout conclusion-layout =
+        length-max [assumptions-layout#inner-width; conclusion-layout#inner-width]
+
+    % context -> inline-text -> length -> render-intermediate-result
+    let render-bar-with-label ctx label bar-width =
+        let make-label ctx label =
+            match label with
+            | None -> inline-nil
+            | Some name -> read-inline ctx name in
+        
+        let make-bar ctx bar-width =
+            let color = get-text-color ctx in
+            let thickness = 0.5pt in
+            let gap = 2pt in
+            inline-graphics bar-width (thickness +' gap) gap (fun (x, y) -> 
+                [ fill color (Gr.rectangle (x, y) (x +' bar-width, y +' thickness))]
+            ) in
+
+        let label = make-label ctx label in
+        let bar = make-bar ctx bar-width in
+        (|
+            rendered = label ++ bar;
+            layout   = (|
+                left-padding  = get-natural-width label;
+                right-padding = 0pt;
+                inner-width   = bar-width;
+            |)
+        |)
+
+    let get-left-width med  = med#layout#left-padding +' (med#layout#inner-width *' 0.5)
+    let get-right-width med = med#layout#right-padding +' (med#layout#inner-width *' 0.5)
+    let get-aligned-left-width meds  = meds |> List.map get-left-width |> length-max
+    let get-aligned-right-width meds = meds |> List.map get-right-width |> length-max
+
+    % render-intermediate-result *3 -> render-intermediate-result
+    let align-and-stack assumptions bar conclusion =
+        % length -> render-intermediate-result -> inline-boxes
+        let align-rendered lwidth med =
+            let lmargin = lwidth -' (get-left-width med) in
+            (inline-skip lmargin) ++ med#rendered ++ inline-fil in
+
+        % render-intermediate-result list -> inline-boxes
+        let align-and-stack-rendered meds =
+            let left-width = get-aligned-left-width meds in
+            line-stack-bottom (meds |> List.map (align-rendered left-width)) in
+
+        % render-intermediate-result list -> render-intermediate-result -> layout
+        let align-layout meds conclusion =
+            let left-width  = get-aligned-left-width meds in
+            let right-width = get-aligned-right-width meds in
+            (|
+                left-padding  = left-width -' (get-left-width conclusion);
+                right-padding = right-width -' (get-right-width conclusion);
+                inner-width   = conclusion#layout#inner-width;
+            |) in
+
+        let meds = [assumptions; bar; conclusion] in
+        (|
+            rendered = align-and-stack-rendered meds;
+            layout   = align-layout meds conclusion;
+        |)
+
+    % context -> derivation-ast -> render-intermediate-result
+    let render-conclusion ctx conclusion =
+        let rendered = embed-math ctx conclusion in
+        (|
+            rendered = rendered;
+            layout = (|
+                left-padding  = 0pt;
+                right-padding = 0pt;
+                inner-width  = get-natural-width rendered;
+            |)
+        |)
 
     % context -> derivation-ast list -> render-intermediate-result
     let-rec render-assumptions ctx assumptions =
@@ -33,32 +113,19 @@ end = struct
         let join-render-intermediate-result med-l med-r =
             let spacing = 30pt in
             let new-rendered = med-l#rendered ++ (inline-skip spacing) ++ med-r#rendered in
-            let new-inner-width = med-l#inner-width +' med-l#right-padding +' spacing +' med-r#left-padding +' med-r#innder-width in
+            let new-inner-width = med-l#layout#inner-width +' med-l#layout#right-padding +' spacing +' med-r#layout#left-padding +' med-r#layout#inner-width in
             (|
                 rendered = new-rendered;
                 layout = (|
-                    left-padding = med-l#left-padding;
-                    right-padding = med-r#right-padding;
+                    left-padding = med-l#layout#left-padding;
+                    right-padding = med-r#layout#right-padding;
                     inner-width = new-inner-width;
                 |)
             |) in
 
         assumptions
         |> List.map (render ctx)
-        |> List.fold-left-adjacent join-render-intermediate-result empty-med-result    
-
-
-    % context -> derivation-ast -> render-intermediate-result
-    and render-conclusion ctx conclusion =
-        let rendered = embed-math ctx conclusion in
-        (|
-            rendered = rendered;
-            layout = (|
-                left-padding  = 0pt;
-                right-padding = 0pt;
-                innder-width  = get-natural-width rendered;
-            |)
-        |)
+        |> List.fold-left join-render-intermediate-result empty-med-result    
 
     % context -> derivation-ast -> inline-boxes
     and render ctx ast =
@@ -71,83 +138,8 @@ end = struct
 
             align-and-stack med-assumptions med-bar med-conclusion
 
-
-    let render-math ast = text-in-math MathInner (fun ctx -> (read-inline ctx ast))
-    
     let render-inline ctx ast = (render ctx ast)#rendered
-        
-    % layout -> layout -> length
-    let get-bar-width assumptions-layout conclusion-layout =
-        length-max [assumptions-layout#innder-width; conclusion-layout#inner-width]
 
-    % context -> inline-text -> length -> render-intermediate-result
-    let render-bar-with-label ctx label bar-width =
-        let make-label ctx label =
-            match label with
-            | None -> inline-nil
-            | Some -> read-inline ctx label in
-        
-        let make-bar ctx bar-width =
-            let color = get-text-color ctx in
-            let thickness = 0.5pt in
-            let gap = 2pt in
-            inline-graphics bar-width (thickness +' gap) gap (fun (x, y) -> 
-                [ fill color (Gr.rectangle (x, y) (x +' w, y +' thickness))]
-            ) in
-
-        let label = make-label ctx label in
-        let bar = inline-graphics bar-width in
-        (|
-            rendered = label ++ bar;
-            layout   = (|
-                left-padding  = get-natural-width label;
-                right-padding = 0pt;
-                inner-width   = bar-width;
-            |)
-        |)
-
-    % render-intermediate-result *3 -> render-intermediate-result
-    let align-and-stack assumptions bar conclusion =
-        let meds = [assumptions; bar; conclusion] in
-        (|
-            rendered = align-and-stack-rendered meds;
-            layout   = align-layout meds conclusion;
-        |)
-
-    % render-intermediate-result list -> inline-boxes
-    let align-and-stack-rendered meds =
-        let left-width = get-aligned-left-width in
-        line-stack-bottom (meds |> List.map (align-rendered left-width))
-        
-    % length -> render-intermediate-result -> inline-boxes
-    let align-rendered lwidth med =
-        let lmargin = lwidth - (get-left-width med) in
-        (inline-skip lmargin) ++ med#rendered ++ inline-fil
-
-    % render-intermediate-result list -> render-intermediate-result -> layout
-    let align-layout meds conclusion =
-        let left-width  = get-alinged-left-width meds in
-        let right-width = get-alingned-right-width meds in
-        (|
-            left-padding  = left-width -' (get-left-padding conclusion);
-            right-padding = right-width -' (get-right-padding conclusion);
-            inner-width   = conclusion#inner-width
-        |)
-
-    let get-aligned-left-width meds =
-        meds |> List.map left-width |> length-max
-
-    let get-aligned-right-width meds =
-        meds |> List.map right-width |> length-max
-
-    let get-left-width med  = med#left-padding + (med#internal-width /' 2)
-    let get-right-width med = med#right-padding + (med#internal-width /' 2)
-
-    % length list -> length
-    let length-max lens =
-        lens |> List.fold-left-adjacent (fun (len1, len2) -> (
-            if len1 <' len2 then len2 else len1
-        )) 0
-
+    let render-math ast = text-in-math MathInner (fun ctx -> (render-inline ctx ast))
 
 end
