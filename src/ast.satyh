@@ -1,24 +1,17 @@
-@import: line
-
-module GreenDeriveAst : sig
-    type derivation-ast
-
-    val make-ast : inline-text option -> math -> derivation-ast list -> derivation-ast
-
-    val render : derivation-ast -> math
-
-end = struct
-    open GreenDeriveLine
-
-    type derivation-ast =
+type derivation-ast =
     | Ast of inline-text option     % left label
            * math                   % conclusion
            * derivation-ast list    % assumptions
         %    * inline-text option     % right label
         %    * derivation-line option % line
 
+module GreenDeriveAst : sig
+
+    val make-ast : inline-text option -> math -> derivation-ast list -> derivation-ast
+
+end = struct
+    
     let make-ast label conclusion assumptions =
         Ast(label, conclusion, assumptions)
 
-    let render ast = ${FIXME}
 end

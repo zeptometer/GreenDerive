@@ -1,16 +1,21 @@
 @import: ast
-
-open GreenDeriveAst
+@import: render
 
 module GreenDerive : sig
+
     val \proven : [derivation-ast] math-cmd
+    val \proven : [derivation-ast] inline-cmd
 
     val deriveBy : inline-text -> math -> derivation-ast list -> derivation-ast
     val assume : math -> derivation-ast
 
 end = struct
-    let-math \proven ast = let picture = render ast in
-        ${#picture}
+    
+    open GreenDeriveAst
+    open GreenDeriveRender
+
+    let-math \proven ast = GreenDeriveRender.render-math ast
+    let-inline \proven ast = GreenDeriveRender.render-inline ast
 
     let deriveBy label conclusion assumptions =
         make-ast (Some(label)) conclusion assumptions

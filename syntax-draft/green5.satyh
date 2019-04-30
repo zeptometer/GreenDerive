@@ -1,4 +1,5 @@
 \proven!(
+    open ProvenDSL in
     open IPCKMRuleLabels in
     derive(${ \ipckm{|  |}{\fmodal{\paren{A \imp B}} \imp \fmodal{A} \imp \fmodal{B}} })
     |> By impI
@@ -8,20 +9,18 @@
         |> From [
             derive(${ \ipckm{| \fmodal{\paren{A \imp B}}, \fmodal{A} |}{ \fmodal{B}} })
             |> By fmodalI
-            |> From [
-                derive
+            |> From (
+                derive (${ \ipckm{| \fmodal{\paren{A \imp B}}, \fmodal{A}| \cdot |}{ B } })
                 |> By impE
-                |> That (${ \ipckm{| \fmodal{\paren{A \imp B}}, \fmodal{A}| \cdot |}{ B } })
-                |> From [
+                |> From (
                     derive (${ \ipckm{| \fmodal{\paren{A \imp B}}, \fmodal{A}| \cdot |}{ A \imp B } })
                     |> By fmodalE
                     |> From [
                         derive (${ \ipckm{| \fmodal{\paren{A \imp B}}, \fmodal{A}|}{ \fmodal{\paren{A \imp B}}} })
-                        |> By hyp
-                    ];
-                    assume(${ \ipckm{| \fmodal{\paren{A \imp B}}, \fmodal{A}| \cdot |}{A} })
-                ]
-            ]
+                        |> By hyp)
+                |> And (
+                    assume(${ \ipckm{| \fmodal{\paren{A \imp B}}, \fmodal{A}| \cdot |}{A} }))
+            )
         ]
     ]  
 )
