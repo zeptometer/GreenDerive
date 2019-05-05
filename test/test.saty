@@ -1,12 +1,14 @@
 @require: stdja
 @import: green-derive-test
+@import: bigderivation
 
 StdJa.document (|
   title = {green-derive test};
   author = {Anonymous Coward};
   show-title = true;
   show-toc = false;
-|) (open GreenDeriveTest in '<
+|) (open GreenDeriveTest in
+    open BigDerivation in '<
     +p {${#test1}}
     +p {${#test2}}
     +p {${#test3}}
@@ -14,4 +16,5 @@ StdJa.document (|
     +p {${#test5}}
     +p {${#test6}}
     +p {${#test7}}
+    +p {${#bigderivation}}
 >)

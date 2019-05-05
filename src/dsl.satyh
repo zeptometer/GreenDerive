@@ -1,0 +1,36 @@
+@import: ast
+@import: line
+
+open GreenDeriveAst
+open GreenDeriveLine
+
+module GreenDeriveDSL : sig
+
+    val derive: math -> derivation-ast
+    val by: inline-text -> derivation-ast -> derivation-ast 
+    val from: derivation-ast list -> derivation-ast -> derivation-ast
+    val withLine: derivation-line -> derivation-ast -> derivation-ast
+
+    val assume: math -> derivation-ast
+
+end = struct
+    
+    let derive conclusion = make-ast None conclusion [] standard-line
+
+    let by label-text ast =
+        match ast with
+        | Ast(_, conclusion, assumptions, line) ->
+            Ast(Some(label-text), conclusion, assumptions, line)
+
+    let from assumptions ast =
+        match ast with
+        | Ast(label-text, conclusion, _, line) ->
+            Ast(label-text, conclusion, assumptions, line)
+
+    let withLine line ast =
+        match ast with
+        | Ast(label-text, conclusion, assumptions, _) ->
+            Ast(label-text, conclusion, assumptions, line)
+
+    let assume assumption = make-ast None assumption [] no-line
+end

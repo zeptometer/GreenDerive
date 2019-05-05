@@ -1,0 +1,84 @@
+@require: stdja
+@require: math
+@import: ../src/green-derive
+@import: ../src/dsl
+
+module SomeLogic : sig
+
+  val \cdot : [] math-cmd
+  val \imp : [] math-cmd
+  val \semicolon : [] math-cmd
+  val \ipckm : [math list; math] math-cmd
+  val \fmodal : [math] math-cmd
+
+  val hyp : inline-text
+  val impI : inline-text
+  val impE : inline-text
+  val fmodalI : inline-text
+  val fmodalE : inline-text
+
+end = struct
+  let bin = math-char MathBin
+
+  let-math \cdot = bin `⋅`
+
+  let-math \imp = ${\rightarrow}
+  let-math \semicolon = math-char MathBin `;`
+
+  let-rec make-modal-judgment
+    | [] succ = ${\vdash #succ}
+    | (x :: []) succ = ${#x \vdash #succ}
+    | (x :: xs) succ = let rest = make-modal-judgment xs succ in
+                           ${#x \semicolon #rest}
+
+  let-math \ipckm andl succ = make-modal-judgment andl succ
+
+  let-math \fmodal p = let box = bin `□` in ${\mathord{#box} #p}  
+
+  let hyp = {(hyp)}
+  let impI = {(${\imp}I)}
+  let impE = {(${\imp}E)}
+  let fmodalI = {(${\fmodal{}}I)}
+  let fmodalE = {(${\fmodal{}}E)}
+
+end
+
+module BigDerivation : sig
+    val bigderivation : math
+end = struct
+    open GreenDerive
+    open GreenDeriveDSL
+
+    let bigderivation = ${
+        \proven!(
+            open GreenDeriveDSL in
+            open SomeLogic in
+            derive(${ \ipckm{|  |}{\fmodal{\paren{A \imp B}} \imp \fmodal{A} \imp \fmodal{B}} })
+            |> by impI
+            |> from [
+                derive(${ \ipckm{| \fmodal{\paren{A \imp B}} |}{\fmodal{A} \imp \fmodal{B}} })
+                |> by impI
+                |> from [
+                    derive(${ \ipckm{| \fmodal{\paren{A \imp B}}, \fmodal{A} |}{ \fmodal{B}} })
+                    |> by fmodalI
+                    |> from [
+                        derive (${ \ipckm{| \fmodal{\paren{A \imp B}}, \fmodal{A}| \cdot |}{ B } })
+                        |> by impE
+                        |> from [
+                            derive (${ \ipckm{| \fmodal{\paren{A \imp B}}, \fmodal{A}| \cdot |}{ A \imp B } })
+                            |> by fmodalE
+                            |> from [
+                                derive (${ \ipckm{| \fmodal{\paren{A \imp B}}, \fmodal{A}|}{ \fmodal{\paren{A \imp B}}} })
+                                |> by hyp
+                                ;
+                                assume(${ \ipckm{| \fmodal{\paren{A \imp B}}, \fmodal{A}| \cdot |}{A} })
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        )
+    }
+
+
+end

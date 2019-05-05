@@ -1,29 +1,14 @@
 @import: ast
 @import: render
-@import: line
 
 module GreenDerive : sig
 
     val \proven : [derivation-ast] math-cmd
 
-    val derive : math -> derivation-ast list -> derivation-ast
-    val deriveBy : inline-text -> math -> derivation-ast list -> derivation-ast
-    val assume : math -> derivation-ast
-
 end = struct
     
-    open GreenDeriveAst
     open GreenDeriveRender
-    open GreenDeriveLine
 
     let-math \proven ast = render-math ast
-
-    let derive conclusion assumptions =
-        make-ast None conclusion assumptions standard-line
-
-    let deriveBy label conclusion assumptions =
-        make-ast (Some(label)) conclusion assumptions standard-line
-
-    let assume conclusion = make-ast None conclusion [] no-line
 
 end

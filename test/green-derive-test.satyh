@@ -1,6 +1,7 @@
 @require: stdja
 @require: math
 @import: ../src/green-derive
+@import: ../src/dsl
 
 module GreenDeriveTest : sig
     val test1 : math
@@ -12,6 +13,7 @@ module GreenDeriveTest : sig
     val test7 : math
 end = struct
     open GreenDerive
+    open GreenDeriveDSL
 
     let test1 = ${
         \proven!(
@@ -21,19 +23,15 @@ end = struct
 
     let test2 = ${
         \proven!(
-            derive
-            (${A \wedge B})
-            [
-            ]
+            derive (${A \wedge B})
         )
     }
 
 
     let test3 = ${
         \proven!(
-            derive
-            (${A \vee B})
-            [
+            derive(${A \vee B})
+            |> from [
                 assume(${A});
             ]
         )
@@ -41,9 +39,8 @@ end = struct
 
     let test4 = ${
         \proven!(
-            derive
-            (${A})
-            [
+            derive(${A})
+            |> from [
                 assume(${A \wedge B});
             ]
         )
@@ -51,60 +48,52 @@ end = struct
 
     let test5 = ${
         \proven!(
-            derive
-            (${A})
-            [
-                deriveBy{${\paren{1}}}
-                (${A \wedge B})
-                [];
+            derive(${A})
+            |> from [
+                derive(${A \wedge B})
+                |> by {${\paren{1}}}
             ]
         )
     }
 
     let test6 = ${
         \proven!(
-            derive
-            (${B})
-            [
-                deriveBy{${\paren{1}}}
-                (${A \vee B})
-                [];
-                deriveBy{${\paren{2}}}
-                (${A \rightarrow \bot})
-                []
+            derive(${B})
+            |> from [
+                derive(${A \vee B})
+                |> by {${\paren{1}}}
+                ;
+                derive(${A \rightarrow \bot})
+                |> by {${\paren{2}}}
             ]
         )
     }
 
         let test6 = ${
         \proven!(
-            derive
-            (${B})
-            [
-                deriveBy{${\paren{1}}}
-                (${A \vee B})
-                [];
-                deriveBy{${\paren{2}}}
-                (${A \rightarrow \bot})
-                []
+            derive (${B})
+            |> from [
+                derive (${A \vee B})
+                |> by {${\paren{1}}}
+                ;
+                derive (${A \rightarrow \bot})
+                |> by{${\paren{2}}}
             ]
         )
     }
     
     let test7 = ${
         \proven!(
-            deriveBy{${\vee}-intro}
-            (${B \vee C})
-            [
-                derive
-                (${B})
-                [
-                    deriveBy{${\paren{1}}}
-                    (${A \vee B})
-                    [];
-                    deriveBy{${\paren{2}}}
-                    (${A \rightarrow \bot})
-                    []
+            derive(${B \vee C})
+            |> by {${\vee}-intro}
+            |> from [
+                derive(${B})
+                |> from [
+                    derive (${A \vee B})
+                    |> by {${\paren{1}}}
+                    ;
+                    derive (${A \rightarrow \bot})
+                    |> by{${\paren{2}}}
                 ]
             ]
         )
