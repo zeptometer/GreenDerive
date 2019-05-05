@@ -1,15 +1,19 @@
+@require: gr
+
+type derivation-line = context -> point -> length -> length -> graphics list
+
 module GreenDeriveLine : sig
-    type derivation-line
 
     val standard-line : derivation-line
     val no-line : derivation-line
 
 end = struct
-    % FIXME
-    type derivation-line = unit
+    let standard-line = fun ctx pt width thickness -> (
+        let color = get-text-color ctx in
+        match pt with
+        | (x, y) ->
+            [ fill color (Gr.rectangle pt (x +' width, y +' thickness)) ]
+    )
 
-    % FIXME
-    let standard-line = ()
-    % FIXME
-    let no-line = ()
+    let no-line = fun _ _ _ _ -> []
 end

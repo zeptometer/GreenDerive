@@ -1,5 +1,6 @@
 @import: ast
 @import: render
+@import: line
 
 module GreenDerive : sig
 
@@ -13,15 +14,16 @@ end = struct
     
     open GreenDeriveAst
     open GreenDeriveRender
+    open GreenDeriveLine
 
     let-math \proven ast = render-math ast
 
     let derive conclusion assumptions =
-        make-ast None conclusion assumptions
+        make-ast None conclusion assumptions standard-line
 
     let deriveBy label conclusion assumptions =
-        make-ast (Some(label)) conclusion assumptions
+        make-ast (Some(label)) conclusion assumptions standard-line
 
-    let assume conclusion = make-ast None conclusion []
+    let assume conclusion = make-ast None conclusion [] no-line
 
 end

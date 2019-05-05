@@ -13,4 +13,5 @@ StdJa.document (|
     +p {${#test4}}
     +p {${#test5}}
     +p {${#test6}}
+    +p {${#test7}}
 >)

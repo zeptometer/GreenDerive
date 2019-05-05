@@ -9,6 +9,7 @@ module GreenDeriveTest : sig
     val test4 : math
     val test5 : math
     val test6 : math
+    val test7 : math
 end = struct
     open GreenDerive
 
@@ -71,6 +72,40 @@ end = struct
                 deriveBy{${\paren{2}}}
                 (${A \rightarrow \bot})
                 []
+            ]
+        )
+    }
+
+        let test6 = ${
+        \proven!(
+            derive
+            (${B})
+            [
+                deriveBy{${\paren{1}}}
+                (${A \vee B})
+                [];
+                deriveBy{${\paren{2}}}
+                (${A \rightarrow \bot})
+                []
+            ]
+        )
+    }
+    
+    let test7 = ${
+        \proven!(
+            deriveBy{${\vee}-intro}
+            (${B \vee C})
+            [
+                derive
+                (${B})
+                [
+                    deriveBy{${\paren{1}}}
+                    (${A \vee B})
+                    [];
+                    deriveBy{${\paren{2}}}
+                    (${A \rightarrow \bot})
+                    []
+                ]
             ]
         )
     }

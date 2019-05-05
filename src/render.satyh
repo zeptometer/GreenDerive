@@ -29,7 +29,7 @@ end = struct
         length-max [assumptions-layout#inner-width; conclusion-layout#inner-width]
 
     % context -> inline-text -> length -> render-intermediate-result
-    let render-bar-with-label ctx label-text bar-width =
+    let render-bar-with-label ctx line label-text bar-width =
         let spacing = 2pt in
 
         let make-label ctx label-text =
@@ -37,22 +37,22 @@ end = struct
             | None -> inline-nil
             | Some text -> read-inline ctx text in
         
-        let make-bar ctx label bar-width =
-            let color = get-text-color ctx in
+        let make-bar ctx line label bar-width =
             let thickness = 0.5pt in
             let gap = 2pt in
             
             let label = make-label ctx label-text in
-            inline-graphics bar-width (thickness +' gap) gap (fun (x, y) ->
+            inline-graphics bar-width (thickness +' gap) gap (fun (x, y) -> (
+                let barx = x +' (get-natural-width label) +' spacing in
+                List.append
                 [
                     Gr.text-rightward (x, y -' (get-axis-height ctx)) label;
-                    let barx = x +' (get-natural-width label) +' spacing in
-                    fill color (Gr.rectangle (barx , y) (barx +' bar-width, y +' thickness));
                 ]
-            ) in 
+                (line ctx (barx, y) bar-width thickness)
+            )) in 
 
         let label = make-label ctx label-text in
-        let bar = make-bar ctx label bar-width in
+        let bar = make-bar ctx line label bar-width in
         (|
             rendered = bar;
             layout   = (|
@@ -140,11 +140,11 @@ end = struct
     % context -> derivation-ast -> inline-boxes
     and render ctx ast =
         match ast with
-        | Ast(label, conclusion, assumptions) ->
+        | Ast(label, conclusion, assumptions, line) ->
             let med-assumptions = render-assumptions ctx assumptions in
             let med-conclusion = render-conclusion ctx conclusion in
             let bar-width = get-bar-width med-assumptions#layout med-conclusion#layout in
-            let med-bar = render-bar-with-label ctx label bar-width in
+            let med-bar = render-bar-with-label ctx line label bar-width in
 
             align-and-stack med-assumptions med-bar med-conclusion
 
