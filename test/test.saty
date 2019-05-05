@@ -9,4 +9,8 @@ StdJa.document (|
 |) (open GreenDeriveTest in '<
     +p {${#test1}}
     +p {${#test2}}
+    +p {${#test3}}
+    +p {${#test4}}
+    +p {${#test5}}
+    +p {${#test6}}
 >)

@@ -5,6 +5,7 @@ module GreenDerive : sig
 
     val \proven : [derivation-ast] math-cmd
 
+    val derive : math -> derivation-ast list -> derivation-ast
     val deriveBy : inline-text -> math -> derivation-ast list -> derivation-ast
     val assume : math -> derivation-ast
 
@@ -14,6 +15,9 @@ end = struct
     open GreenDeriveRender
 
     let-math \proven ast = render-math ast
+
+    let derive conclusion assumptions =
+        make-ast None conclusion assumptions
 
     let deriveBy label conclusion assumptions =
         make-ast (Some(label)) conclusion assumptions

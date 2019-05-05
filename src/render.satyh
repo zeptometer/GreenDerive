@@ -29,26 +29,34 @@ end = struct
         length-max [assumptions-layout#inner-width; conclusion-layout#inner-width]
 
     % context -> inline-text -> length -> render-intermediate-result
-    let render-bar-with-label ctx label bar-width =
-        let make-label ctx label =
-            match label with
+    let render-bar-with-label ctx label-text bar-width =
+        let spacing = 2pt in
+
+        let make-label ctx label-text =
+            match label-text with
             | None -> inline-nil
-            | Some name -> read-inline ctx name in
+            | Some text -> read-inline ctx text in
         
-        let make-bar ctx bar-width =
+        let make-bar ctx label bar-width =
             let color = get-text-color ctx in
             let thickness = 0.5pt in
             let gap = 2pt in
-            inline-graphics bar-width (thickness +' gap) gap (fun (x, y) -> 
-                [ fill color (Gr.rectangle (x, y) (x +' bar-width, y +' thickness))]
-            ) in
+            
+            let label = make-label ctx label-text in
+            inline-graphics bar-width (thickness +' gap) gap (fun (x, y) ->
+                [
+                    Gr.text-rightward (x, y -' (get-axis-height ctx)) label;
+                    let barx = x +' (get-natural-width label) +' spacing in
+                    fill color (Gr.rectangle (barx , y) (barx +' bar-width, y +' thickness));
+                ]
+            ) in 
 
-        let label = make-label ctx label in
-        let bar = make-bar ctx bar-width in
+        let label = make-label ctx label-text in
+        let bar = make-bar ctx label bar-width in
         (|
-            rendered = label ++ bar;
+            rendered = bar;
             layout   = (|
-                left-padding  = get-natural-width label;
+                left-padding  = (get-natural-width label) +' spacing;
                 right-padding = 0pt;
                 inner-width   = bar-width;
             |)
@@ -110,22 +118,24 @@ end = struct
             |)
         |) in
 
-        let join-render-intermediate-result med-l med-r =
-            let spacing = 30pt in
-            let new-rendered = med-l#rendered ++ (inline-skip spacing) ++ med-r#rendered in
-            let new-inner-width = med-l#layout#inner-width +' med-l#layout#right-padding +' spacing +' med-r#layout#left-padding +' med-r#layout#inner-width in
-            (|
-                rendered = new-rendered;
-                layout = (|
-                    left-padding = med-l#layout#left-padding;
-                    right-padding = med-r#layout#right-padding;
-                    inner-width = new-inner-width;
-                |)
-            |) in
-
-        assumptions
-        |> List.map (render ctx)
-        |> List.fold-left join-render-intermediate-result empty-med-result    
+        let join-render-intermediate-result med-l med-r ladj _ =
+            match ladj with
+            | None -> med-r
+            | Some _ -> 
+                let spacing = 10pt in
+                let new-rendered = med-l#rendered ++ (inline-skip spacing) ++ med-r#rendered in
+                let new-inner-width = med-l#layout#inner-width +' med-l#layout#right-padding +' spacing +' med-r#layout#left-padding +' med-r#layout#inner-width in
+                (|
+                    rendered = new-rendered;
+                    layout = (|
+                        left-padding = med-l#layout#left-padding;
+                        right-padding = med-r#layout#right-padding;
+                        inner-width = new-inner-width;
+                    |)
+                |) in
+                assumptions
+                |> List.map (render ctx)
+                |> List.fold-left-adjacent join-render-intermediate-result empty-med-result
 
     % context -> derivation-ast -> inline-boxes
     and render ctx ast =

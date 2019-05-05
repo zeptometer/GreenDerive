@@ -5,6 +5,10 @@
 module GreenDeriveTest : sig
     val test1 : math
     val test2 : math
+    val test3 : math
+    val test4 : math
+    val test5 : math
+    val test6 : math
 end = struct
     open GreenDerive
 
@@ -16,11 +20,57 @@ end = struct
 
     let test2 = ${
         \proven!(
-            deriveBy({${\wedge}I})
+            derive
             (${A \wedge B})
             [
+            ]
+        )
+    }
+
+
+    let test3 = ${
+        \proven!(
+            derive
+            (${A \vee B})
+            [
                 assume(${A});
-                assume(${B});
+            ]
+        )
+    }
+
+    let test4 = ${
+        \proven!(
+            derive
+            (${A})
+            [
+                assume(${A \wedge B});
+            ]
+        )
+    }
+
+    let test5 = ${
+        \proven!(
+            derive
+            (${A})
+            [
+                deriveBy{${\paren{1}}}
+                (${A \wedge B})
+                [];
+            ]
+        )
+    }
+
+    let test6 = ${
+        \proven!(
+            derive
+            (${B})
+            [
+                deriveBy{${\paren{1}}}
+                (${A \vee B})
+                [];
+                deriveBy{${\paren{2}}}
+                (${A \rightarrow \bot})
+                []
             ]
         )
     }
