@@ -46,11 +46,9 @@ end
 module BigDerivation : sig
     val bigderivation : math
 end = struct
-    open GreenDerive
-    open GreenDeriveDSL
 
     let bigderivation = ${
-        \proven!(
+        \GreenDerive.proven!(
             open GreenDeriveDSL in
             open SomeLogic in
             derive(${ \ipckm{|  |}{\fmodal{\paren{A \imp B}} \imp \fmodal{A} \imp \fmodal{B}} })
@@ -79,6 +77,5 @@ end = struct
             ]
         )
     }
-
 
 end

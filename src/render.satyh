@@ -1,12 +1,19 @@
 @require: gr
+@require: option
 @import: ast
 
 module GreenDeriveRender : sig
 
-    val render-math : derivation-ast -> math
+    val render-math   : derivation-ast -> math
     val render-inline : context -> derivation-ast -> inline-boxes
 
 end = struct
+
+    % params
+    let label-top-bottom-margin = 2pt
+    let label-left-right-margin = 2pt
+    let bar-thickness           = 0.5pt
+
 
     type layout = (|
         left-padding: length;
@@ -29,46 +36,48 @@ end = struct
         length-max [assumptions-layout#inner-width; conclusion-layout#inner-width]
 
     % context -> inline-text -> length -> render-intermediate-result
-    let render-bar-with-label ctx line label-text bar-width =
-        let spacing = 2pt in
-
+    let render-bar-with-label ctx line llabel-text rlabel-text bar-width =
         let make-label ctx label-text =
             match label-text with
             | None -> inline-nil
             | Some text -> read-inline ctx text in
-        
-        let make-bar ctx line label bar-width =
-            let thickness = 0.5pt in
-            let gap = 2pt in
-            
-            let label = make-label ctx label-text in
-            inline-graphics bar-width (thickness +' gap) gap (fun (x, y) -> (
-                let barx = x +' (get-natural-width label) +' spacing in
-                List.append
-                [
-                    Gr.text-rightward (x, y -' (get-axis-height ctx)) label;
-                ]
-                (line ctx (barx, y) bar-width thickness)
-            )) in 
 
-        let label = make-label ctx label-text in
-        let bar = make-bar ctx line label bar-width in
+        let make-bar ctx line llabel rlabel bar-width =
+            let bar-with-label-width = bar-width +' (get-natural-width llabel) +' (get-natural-width rlabel) in
+            inline-graphics
+                bar-with-label-width
+                (bar-thickness +' label-top-bottom-margin)
+                label-top-bottom-margin
+                (fun (x, y) -> (
+                    let barx = x +' (get-natural-width llabel) +' label-left-right-margin in
+                    let rlabelx = barx +' bar-width +' label-left-right-margin in
+                    List.append
+                    [
+                        Gr.text-rightward (x, y -' (get-axis-height ctx)) llabel;
+                        Gr.text-rightward (rlabelx , y -' (get-axis-height ctx)) rlabel
+                    ]
+                    (line ctx (barx, y) bar-width bar-thickness)
+                )) in 
+
+        let llabel = llabel-text |> Option.map (read-inline ctx) |> Option.from inline-nil in
+        let rlabel = rlabel-text |> Option.map (read-inline ctx) |> Option.from inline-nil in
+        let bar = make-bar ctx line llabel rlabel bar-width in
         (|
             rendered = bar;
             layout   = (|
-                left-padding  = (get-natural-width label) +' spacing;
-                right-padding = 0pt;
+                left-padding  = (get-natural-width llabel) +' label-left-right-margin;
+                right-padding = (get-natural-width rlabel) +' label-left-right-margin;
                 inner-width   = bar-width;
             |)
         |)
 
-    let get-left-width med  = med#layout#left-padding +' (med#layout#inner-width *' 0.5)
-    let get-right-width med = med#layout#right-padding +' (med#layout#inner-width *' 0.5)
-    let get-aligned-left-width meds  = meds |> List.map get-left-width |> length-max
-    let get-aligned-right-width meds = meds |> List.map get-right-width |> length-max
-
     % render-intermediate-result *3 -> render-intermediate-result
     let align-and-stack assumptions bar conclusion =
+        let get-left-width med  = med#layout#left-padding +' (med#layout#inner-width *' 0.5) in
+        let get-right-width med = med#layout#right-padding +' (med#layout#inner-width *' 0.5) in
+        let get-aligned-left-width meds  = meds |> List.map get-left-width |> length-max in
+        let get-aligned-right-width meds = meds |> List.map get-right-width |> length-max in
+
         % length -> render-intermediate-result -> inline-boxes
         let align-rendered lwidth med =
             let lmargin = lwidth -' (get-left-width med) in
@@ -133,18 +142,19 @@ end = struct
                         inner-width = new-inner-width;
                     |)
                 |) in
-                assumptions
-                |> List.map (render ctx)
-                |> List.fold-left-adjacent join-render-intermediate-result empty-med-result
+        
+        assumptions
+        |> List.map (render ctx)
+        |> List.fold-left-adjacent join-render-intermediate-result empty-med-result
 
     % context -> derivation-ast -> inline-boxes
     and render ctx ast =
         match ast with
-        | Ast(label, conclusion, assumptions, line) ->
+        | Ast(llabel, rlabel, conclusion, assumptions, line) ->
             let med-assumptions = render-assumptions ctx assumptions in
             let med-conclusion = render-conclusion ctx conclusion in
             let bar-width = get-bar-width med-assumptions#layout med-conclusion#layout in
-            let med-bar = render-bar-with-label ctx line label bar-width in
+            let med-bar = render-bar-with-label ctx line llabel rlabel bar-width in
 
             align-and-stack med-assumptions med-bar med-conclusion
 

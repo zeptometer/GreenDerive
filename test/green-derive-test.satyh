@@ -11,6 +11,7 @@ module GreenDeriveTest : sig
     val test5 : math
     val test6 : math
     val test7 : math
+    val test8 : math
 end = struct
     open GreenDerive
     open GreenDeriveDSL
@@ -69,7 +70,7 @@ end = struct
         )
     }
 
-        let test6 = ${
+    let test6 = ${
         \proven!(
             derive (${B})
             |> from [
@@ -84,16 +85,33 @@ end = struct
     
     let test7 = ${
         \proven!(
-            derive(${B \vee C})
+            derive ${B \vee C}
             |> by {${\vee}-intro}
             |> from [
-                derive(${B})
+                derive ${B}
                 |> from [
-                    derive (${A \vee B})
+                    derive ${A \vee B}
                     |> by {${\paren{1}}}
                     ;
-                    derive (${A \rightarrow \bot})
+                    derive ${A \rightarrow \bot}
                     |> by{${\paren{2}}}
+                ]
+            ]
+        )
+    }
+
+    let test8 = ${
+        \proven!(
+            derive ${B \vee C}
+            |> by {${\vee}-intro}
+            |> from [
+                derive ${B}
+                |> from [
+                    derive ${A \vee B}
+                    |> by ?:(Left) {Left Label}
+                    |> by ?:(Right) {Right Label}
+                    ;
+                    assume ${A \rightarrow \bot}
                 ]
             ]
         )
