@@ -12,6 +12,7 @@ module GreenDeriveTest : sig
     val test6 : math
     val test7 : math
     val test8 : math
+    val test9 : math
 end = struct
     open GreenDerive
     open GreenDeriveDSL
@@ -27,7 +28,6 @@ end = struct
             derive (${A \wedge B})
         )
     }
-
 
     let test3 = ${
         \proven!(
@@ -102,18 +102,27 @@ end = struct
 
     let test8 = ${
         \proven!(
-            derive ${B \vee C}
-            |> by {${\vee}-intro}
+            derive ${B}
             |> from [
-                derive ${B}
-                |> from [
-                    derive ${A \vee B}
-                    |> by ?:(Left) {Left Label}
-                    |> by ?:(Right) {Right Label}
-                    ;
-                    assume ${A \rightarrow \bot}
-                ]
+                assume ${hoge}
+                ;
+                derive ${A \vee B}
+                |> by ?:(Left) {Left Label}
+                |> by ?:(Right) {Right Label}
+                ;
+                assume ${A \rightarrow \bot}
             ]
         )
     }
+
+    let test9 = ${
+        \proven!(
+            derive(${A \vee B})
+            |> withLine (dotted-line 5pt 2.5pt)
+            |> from [
+                assume(${A});
+            ]
+        )
+    }
+
 end
