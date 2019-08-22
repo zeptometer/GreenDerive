@@ -1,4 +1,6 @@
 # GreenDerive
+**Now GreenDerive is part of [satysfi-llb](https://github.com/nyuichi/satysfi-lib). We recommend to use it instead.**
+
 Yet another SATySFi library for displaying derivation trees.
 
 **Cauison**: This library is still under development and unstable.
